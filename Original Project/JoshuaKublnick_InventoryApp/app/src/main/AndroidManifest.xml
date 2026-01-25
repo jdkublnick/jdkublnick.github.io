@@ -2,6 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.SEND_SMS" />
+    <!-- Camera permission is needed to scan barcodes -->
+    <uses-permission android:name="android.permission.CAMERA" />
 
     <application
         android:allowBackup="true"
@@ -26,6 +28,11 @@
 
         <activity
             android:name=".sms_notifs.SmsNotifsActivity"
+            android:exported="false" />
+
+        <!-- New activity for barcode scanning -->
+        <activity
+            android:name=".barcode_scanner.BarcodeScannerActivity"
             android:exported="false" />
 
     </application>

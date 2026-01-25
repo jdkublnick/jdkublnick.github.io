@@ -3,6 +3,7 @@ package com.example.joshuakublnick_inventoryapp.inventory_screen;
 import android.Manifest;
 import android.app.AlertDialog;
 import android.content.ContentValues;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Color;
@@ -23,11 +24,13 @@ import androidx.core.content.ContextCompat;
 
 import com.example.joshuakublnick_inventoryapp.DatabaseHelper;
 import com.example.joshuakublnick_inventoryapp.R;
+import com.example.joshuakublnick_inventoryapp.barcode_scanner.BarcodeScannerActivity;
 
 public class InventoryActivity extends AppCompatActivity {
 
     EditText editItemName, editQuantity;
     Button btnAddItem;
+    Button btnScanBarcode; // New button for barcode scanning
     GridLayout gridLayout;
     DatabaseHelper db;
 
@@ -40,6 +43,7 @@ public class InventoryActivity extends AppCompatActivity {
         editItemName = findViewById(R.id.editItemName);
         editQuantity = findViewById(R.id.editQuantity);
         btnAddItem   = findViewById(R.id.btnAddItem);
+        btnScanBarcode = findViewById(R.id.btnScanBarcode); // Connect the scan button
         gridLayout   = findViewById(R.id.gridInventory);
 
         // Database helper
@@ -74,6 +78,12 @@ public class InventoryActivity extends AppCompatActivity {
             } else {
                 Toast.makeText(this, "Failed to add item", Toast.LENGTH_SHORT).show();
             }
+        });
+
+        // Scan barcode button - opens the barcode scanner activity
+        btnScanBarcode.setOnClickListener(v -> {
+            Intent intent = new Intent(InventoryActivity.this, BarcodeScannerActivity.class);
+            startActivityForResult(intent, 1); // Start barcode scanner with request code 1
         });
     }
 
@@ -193,5 +203,76 @@ public class InventoryActivity extends AppCompatActivity {
         } catch (Exception e) {
             Toast.makeText(this, "Failed to send SMS: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
+    }
+
+    // This method is called when the barcode scanner returns a result
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        // Check if result is from the barcode scanner (request code 1)
+        if (requestCode == 1 && resultCode == RESULT_OK && data != null) {
+            String barcode = data.getStringExtra("barcode"); // Get the scanned barcode
+
+            if (barcode == null || barcode.isEmpty()) {
+                Toast.makeText(this, "Invalid barcode", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            // Check if an item with this barcode already exists
+            int itemId = db.findItemByBarcode(barcode);
+
+            if (itemId != -1) {
+                // Item exists - increase its quantity by 1
+                String itemName = db.getItemNameById(itemId);
+                int currentQty = db.getItemQtyById(itemId);
+                int newQty = currentQty + 1;
+
+                db.updateItem(itemId, itemName, newQty);
+                Toast.makeText(this, "Added 1 to " + itemName + "!", Toast.LENGTH_SHORT).show();
+
+                // Check if quantity is low
+                if (newQty <= 2) {
+                    sendLowStockAlert(itemName, newQty);
+                }
+            } else {
+                // Item doesn't exist yet - ask user for item name and create new item
+                showBarcodeItemDialog(barcode);
+            }
+
+            // Refresh the inventory list
+            showItems();
+        }
+    }
+
+    // Shows dialog to add a new item with a barcode
+    private void showBarcodeItemDialog(String barcode) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("New Item (Barcode: " + barcode + ")");
+
+        // Input field for item name
+        final EditText input = new EditText(this);
+        input.setHint("Enter item name");
+        input.setInputType(InputType.TYPE_CLASS_TEXT);
+        builder.setView(input);
+
+        builder.setPositiveButton("Add with quantity 1", (dialog, which) -> {
+            String itemName = input.getText().toString().trim();
+            if (itemName.isEmpty()) {
+                Toast.makeText(InventoryActivity.this, "Please enter item name", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            // Add the new item with barcode and quantity 1
+            if (db.addItemWithBarcode(itemName, 1, barcode)) {
+                Toast.makeText(InventoryActivity.this, "New item added: " + itemName, Toast.LENGTH_SHORT).show();
+                showItems(); // Refresh list
+            } else {
+                Toast.makeText(InventoryActivity.this, "Failed to add item", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
+        builder.show();
     }
 }

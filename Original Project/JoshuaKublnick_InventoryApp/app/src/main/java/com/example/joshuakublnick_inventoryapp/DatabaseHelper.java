@@ -10,7 +10,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     private static final String DB_NAME = "InventoryApp.db";
-    private static final int DB_VERSION = 1;
+    private static final int DB_VERSION = 2; // Updated version for new barcode column
 
     // Table for user logins
     private static final String TABLE_USERS = "users";
@@ -22,6 +22,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String COL_ID = "id";
     private static final String COL_ITEM = "item_name";
     private static final String COL_QTY = "quantity";
+    private static final String COL_BARCODE = "barcode"; // New column to store barcode for each item
 
     public DatabaseHelper(Context context) {
         super(context, DB_NAME, null, DB_VERSION);
@@ -36,7 +37,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         String createItems = "CREATE TABLE " + TABLE_ITEMS +
                 " (" + COL_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                COL_ITEM + " TEXT, " + COL_QTY + " INTEGER)";
+                COL_ITEM + " TEXT, " + COL_QTY + " INTEGER, " +
+                COL_BARCODE + " TEXT)"; // barcode column - each item has a unique barcode
         db.execSQL(createItems);
     }
 
@@ -102,5 +104,71 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public Cursor getAllItems() {
         SQLiteDatabase db = this.getReadableDatabase();
         return db.rawQuery("SELECT * FROM " + TABLE_ITEMS, null);
+    }
+
+    // Adds a new item with a barcode
+    public boolean addItemWithBarcode(String name, int qty, String barcode) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COL_ITEM, name);
+        values.put(COL_QTY, qty);
+        values.put(COL_BARCODE, barcode); // Store the barcode with the item
+        long result = db.insert(TABLE_ITEMS, null, values);
+        db.close();
+        return result != -1;
+    }
+
+    // Finds an item by barcode - returns the item id, or -1 if not found
+    public int findItemByBarcode(String barcode) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT " + COL_ID + " FROM " + TABLE_ITEMS +
+                " WHERE " + COL_BARCODE + "=?", new String[]{barcode});
+
+        int id = -1; // -1 means item not found
+        if (cursor != null && cursor.moveToFirst()) {
+            id = cursor.getInt(cursor.getColumnIndexOrThrow(COL_ID)); // Get the item id
+        }
+
+        if (cursor != null) {
+            cursor.close();
+        }
+        db.close();
+        return id;
+    }
+
+    // Gets item name by id (useful for showing what item was just added)
+    public String getItemNameById(int id) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT " + COL_ITEM + " FROM " + TABLE_ITEMS +
+                " WHERE " + COL_ID + "=?", new String[]{String.valueOf(id)});
+
+        String name = null;
+        if (cursor != null && cursor.moveToFirst()) {
+            name = cursor.getString(cursor.getColumnIndexOrThrow(COL_ITEM)); // Get the item name
+        }
+
+        if (cursor != null) {
+            cursor.close();
+        }
+        db.close();
+        return name;
+    }
+
+    // Gets the current quantity of an item by id
+    public int getItemQtyById(int id) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT " + COL_QTY + " FROM " + TABLE_ITEMS +
+                " WHERE " + COL_ID + "=?", new String[]{String.valueOf(id)});
+
+        int qty = 0;
+        if (cursor != null && cursor.moveToFirst()) {
+            qty = cursor.getInt(cursor.getColumnIndexOrThrow(COL_QTY)); // Get the current quantity
+        }
+
+        if (cursor != null) {
+            cursor.close();
+        }
+        db.close();
+        return qty;
     }
 }

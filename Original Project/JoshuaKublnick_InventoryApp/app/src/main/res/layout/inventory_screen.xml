@@ -50,6 +50,15 @@
             android:text="Add"
             android:backgroundTint="#00FFC6"
             android:textColor="#000000" />
+
+        <!-- Button to open barcode scanner -->
+        <Button
+            android:id="@+id/btnScanBarcode"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Scan"
+            android:backgroundTint="#00FFC6"
+            android:textColor="#000000" />
     </LinearLayout>
 
     <!-- Header Row -->

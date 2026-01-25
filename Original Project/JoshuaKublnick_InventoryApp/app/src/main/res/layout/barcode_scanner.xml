@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="16dp"
+    android:background="#0A0A0A">
+
+    <!-- Title -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Scan Barcode"
+        android:textColor="#00FFC6"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="32dp" />
+
+    <!-- Button to switch to test mode -->
+    <Button
+        android:id="@+id/btnTestMode"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Test Mode (Type Barcode)"
+        android:backgroundTint="#00FFC6"
+        android:textColor="#000000"
+        android:layout_marginBottom="16dp"
+        android:padding="16dp" />
+
+    <!-- Test mode input field - starts hidden -->
+    <EditText
+        android:id="@+id/testBarcodeInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Enter barcode here"
+        android:background="#FFFFFF"
+        android:textColor="#000000"
+        android:padding="12dp"
+        android:layout_marginBottom="8dp"
+        android:visibility="gone" />
+
+    <!-- Submit button for test mode - starts hidden -->
+    <Button
+        android:id="@+id/btnSubmitTestBarcode"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Submit Barcode"
+        android:backgroundTint="#00FF00"
+        android:textColor="#000000"
+        android:layout_marginBottom="16dp"
+        android:visibility="gone" />
+
+    <!-- Button to use camera scanner -->
+    <Button
+        android:id="@+id/btnCameraMode"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Camera Mode (Scan)"
+        android:backgroundTint="#00FFC6"
+        android:textColor="#000000"
+        android:padding="16dp" />
+
+    <!-- Help text -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Choose test mode to type a barcode,\nor camera mode to scan a real barcode"
+        android:textColor="#CCCCCC"
+        android:textSize="14sp"
+        android:gravity="center"
+        android:layout_marginTop="32dp" />
+
+</LinearLayout>
